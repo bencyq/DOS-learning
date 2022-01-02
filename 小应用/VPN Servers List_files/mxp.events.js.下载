@@ -1,0 +1,477 @@
+$(function(){
+
+    var extraFunctions = {
+
+        getShareButton : function(ele , data , event) {
+
+            data['sharedOn'] =  ele.attr('data-share-button') || '';
+            return data;
+
+        },
+
+        setLike : function(ele , data , event){
+            data['rateType'] = 'Like';
+            return data;
+        },
+
+        setDislike : function(ele , data , event){
+            data['rateType'] = 'Dislike';
+            data['dislikeEmail'] = $('#email').val();
+            data['dislikeSelectedOption'] = $('input[name=option]:checked').val();
+            data['dislikeMessage'] = $('#message').val();
+            return data;
+        },
+
+        getMenuClicked : function(ele , data , event){
+            if($(event.target).is('a')){
+                data['clickedItem'] = $(event.target).text();
+            }
+
+            data = deletePostData(data);
+            return data;
+        },
+
+        getChannelName : function(ele , data , event){
+            data['channelName'] = ele.attr('data-channel-name');
+            data = deletePostData(data);
+            return data;
+        },
+
+        getMainCatName : function (ele , data , event) {
+            data['categoryName'] = ele.attr('data-category-name');
+            data = deletePostData(data);
+            return data;
+        },
+
+        getInnerCatName : function(ele , data , event){
+            data['categoryName'] = $(event.target).text();
+            data = deletePostData(data);
+            return data;
+        },
+
+        setSidebarEvent : function (ele , data , event) {
+
+            data['clickedItem'] = ele.attr('data-clicked-item');
+            if(data['clickedItem'] == 'category'){
+                data = deletePostData(data);
+                data['categoryId'] = ele.attr('data-category-id');
+                data['categoryName'] = ele.attr('data-category-name');
+            }
+
+            return data;
+
+        },
+
+        setTroubleshootData : function (ele , data , event) {
+
+            var troubleshootType = ele.attr('data-troubleshoot-type');
+            data['troubleshootType'] = troubleshootType;
+            if(troubleshootType == "General"){
+                data = deletePostData(data);
+            }
+            data['questionId'] = ele.attr('data-question-id');
+            data['questionTitle'] = ele.attr('data-question-title');
+            data['answerId'] = ele.attr('data-answer-id');
+            data['answerValue'] = ele.attr('data-answer-value');
+            return data;
+        },
+
+        setSearchClickedData : function(ele , data , event){
+
+            data['keyword'] = ele.attr('data-keyword');
+
+            return data;
+
+        },
+
+        setQuickLink : function (ele , data , event) {
+            data['quickLink'] = ele.attr('data-link-click');
+            data = deletePostData(data);
+            return data;
+        },
+
+        deletePostData : function(ele , data , event){
+            data = deletePostData(data);
+            return data;
+        }
+
+    },
+
+    deletePostData = function(data){
+        delete data['postId'];
+        delete data['postTitle'];
+        return data;
+    },
+
+    getCommonEventData = function (ele) {
+
+        return {
+                'postId' : ele.attr('data-post-id') || '',
+                'postTitle' : ele.attr('data-post-title') || '',
+                'pageUrl' : window.location.href,
+                'eventName' : ele.attr('data-event-name')
+            };
+    },
+
+    sendEvent = function(data){
+        data = {
+            'eventData' : data,
+            'action' : 'send_mxp_events'
+        };
+        $.ajax({
+            type : 'POST',
+            data : data,
+            url : WP_AJAX_URL,
+            success : function(response){
+
+            }
+        });
+
+    },
+
+    applyEvent = function(ele , event){
+
+        var data = getCommonEventData(ele),
+            extraFunction = ele.attr('data-extra-function') || '';
+
+        if(extraFunction != ""){
+            data = extraFunctions[extraFunction](ele , data , event);
+        }
+
+        sendEvent(data);
+    };
+
+    $(document).on('click' , '.mxpEvent' , function(event){
+
+        applyEvent($(this) , event);
+
+    });
+
+    //event for language change
+    var currentLanguage ='',checkCurrentLanguage,data;
+    setInterval(function () {
+        checkCurrentLanguage = $('.goog-te-menu-value span:first').text() || '';
+
+        if(currentLanguage != "" && currentLanguage != "Select Language" && checkCurrentLanguage != "Select Language" && currentLanguage != checkCurrentLanguage){
+            currentLanguage = checkCurrentLanguage;
+            data = {
+                'pageUrl' : window.location.href,
+                'eventName' : 'LanguageChanged',
+                'selectedLanguage' : currentLanguage
+            };
+
+            sendEvent(data);
+        }
+        if(currentLanguage == ""){
+            currentLanguage = checkCurrentLanguage;
+        }
+    },2000);
+
+    $(document).on('click', '#ios_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'Platform' : 'IOS'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#ios_setup_guide_alt', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_DownloadAlternate',
+            'platform' : 'Android'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.send-ios-link', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'OnboardingSendIosLinkClicked'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#android_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Android'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#android_setup_guide_alt', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_DownloadAlternate',
+            'platform' : 'Android'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#windows_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Windows'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#windows_setup_guide_alt', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_DownloadAlternate',
+            'platform' : 'Windows'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#chrome_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Chrome'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#firefox_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Firefox'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#androidtv_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Android TV'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#fireos_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Fire OS'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#kodi_setup_guide_dow', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_Download',
+            'platform' : 'Kodi VPN'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.other-device', function(event){
+
+        var device_name = $(this).find('span').text();
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked',
+            'platform' : device_name
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.linux-device', function(event){
+
+        var device_name = $(this).find('span').text();
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked',
+            'platform' : device_name
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.router-device', function(event){
+
+        var device_name = $(this).find('span').text();
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked',
+            'platform' : device_name
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.connected-yet', function(event){
+
+        var is_connected = $(this).attr("data-user-connected");
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Connect_Home_ConnectionStatus',
+            'connected' : is_connected
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.desired-outcome-achieved', function(event){
+
+        var is_connected = $(this).attr('data-outcome');
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Connect_Home_ConnectionStatus_Connected',
+            'desiredOutcomeAchieved' : is_connected
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#unable_to_connect_guide', function(event){
+
+        var is_connected = $(this).attr('data-text');
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Connect_Home_ConnectionStatus_NotConnected_TG'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#unable_to_connect_livechat', function(event){
+
+        var is_connected = $(this).attr('data-text');
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Connect_Home_ConnectionStatus_NotConnected_LCI'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#desired_outcome_achieved_livechat', function(event){
+
+        var is_connected = $(this).attr('data-text');
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Connect_Home_ConnectionStatus_Connected_DO_NOT_LCI'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#mac_setup_guide_dow', function(event){
+
+        var is_connected = $(this).text();
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked',
+            'version' : $(".mac-app-dropdown").val(),
+            'platform' : 'Mac'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '#mac_setup_guide_alt', function(event){
+
+        var is_connected = $(this).text();
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked_DownloadAlternate',
+            'version' : $(".mac-app-dropdown").val(),
+            'platform' : 'Mac'
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.home-button', function(event){
+
+        data = {
+            'pageUrl' : window.location.href,
+            'eventName' : 'Onboarding_Download_Home_CTAClicked',
+            'platform' : $(this).find('.tile h3').text()
+        };
+
+        sendEvent(data);
+
+    });
+
+    $(document).on('click', '.troubleShooting .answerResult a', function (e) {
+        var answerValue = $(this).attr('data-text');
+
+        data = {
+            'eventName' : 'Troubleshoot_Further_Help',
+            'requiresFurtherHelp' : answerValue
+        };
+
+        sendEvent(data);
+
+    });
+
+
+});

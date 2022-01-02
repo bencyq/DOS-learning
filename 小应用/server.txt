@@ -1,0 +1,13 @@
+Miami	 usfl1.pointtoserver.com	 usfl1.pointtoserver.com	 usfl1.pointtoserver.com	 usfl2-auto-ikev.ptoserver.com	 usfl2-auto-ipsec.ptoserver.com	 usfl2-auto-tcp.ptoserver.com	 usfl2-auto-udp.ptoserver.com
+Phoenix	 N/A	 N/A	 N/A	 usphx2-auto-ikev.ptoserver.com	 usphx2-auto-ipsec.ptoserver.com	 usphx2-auto-tcp.ptoserver.com	 usphx2-auto-udp.ptoserver.com
+Los Angeles	 usla1.pointtoserver.com	 usca1.pointtoserver.com	 usla1.pointtoserver.com	 usca2-auto-ikev.ptoserver.com	 usca2-auto-ipsec.ptoserver.com	 usca2-auto-tcp.ptoserver.com	 usca2-auto-udp.ptoserver.com
+Chicago	 usil1.pointtoserver.com	 usil1.pointtoserver.com	 usil1.pointtoserver.com	 usil2-auto-ikev.ptoserver.com	 usil2-auto-ipsec.ptoserver.com	 usil2-auto-tcp.ptoserver.com	 usil2-auto-udp.ptoserver.com
+New Jersey	 N/A	 N/A	 N/A	 usnj2-auto-ikev.ptoserver.com	 usnj2-auto-ipsec.ptoserver.com	 usnj2-auto-tcp.ptoserver.com	 usnj2-auto-udp.ptoserver.com
+New York	 usny1.pointtoserver.com	 usny1.pointtoserver.com	 usny1.pointtoserver.com	 usny2-auto-ikev.ptoserver.com	 usny2-auto-ipsec.ptoserver.com	 usny2-auto-tcp.ptoserver.com	 usny2-auto-udp.ptoserver.com
+Houston	 ustx1.pointtoserver.com	 ustx1.pointtoserver.com	 ustx1.pointtoserver.com	 ustx2-auto-ikev.ptoserver.com	 ustx2-auto-ipsec.ptoserver.com	 ustx2-auto-tcp.ptoserver.com	 ustx2-auto-udp.ptoserver.com
+Atlanta	 N/A	 N/A	 N/A	 usga2-auto-ikev.ptoserver.com	 usga2-auto-ipsec.ptoserver.com	 usga2-auto-tcp.ptoserver.com	 usga2-auto-udp.ptoserver.com
+Washington DC	 uswdc1.pointtoserver.com	 uswdc1.pointtoserver.com	 uswdc1.pointtoserver.com	 uswdc2-auto-ikev.ptoserver.com	 uswdc2-auto-ipsec.ptoserver.com	 uswdc2-auto-tcp.ptoserver.com	 uswdc2-auto-udp.ptoserver.com
+Ashburn	 N/A	 N/A	 N/A	 usva2-auto-ikev.ptoserver.com	 usva2-auto-ipsec.ptoserver.com	 usva2-auto-tcp.ptoserver.com	 usva2-auto-udp.ptoserver.com
+San Francisco	 N/A	 N/A	 N/A	 ussf2-auto-ikev.ptoserver.com	 ussf2-auto-ipsec.ptoserver.com	 ussf2-auto-tcp.ptoserver.com	 ussf2-auto-udp.ptoserver.com
+Seattle	 N/A	 N/A	 N/A	 ussa2-auto-ikev.ptoserver.com	 ussa2-auto-ipsec.ptoserver.com	 ussa2-auto-tcp.ptoserver.com	 ussa2-auto-udp.ptoserver.com
+Salt Lake City	 N/A	 N/A	 N/A	 usut2-auto-ikev.ptoserver.com	 usut2-auto-ipsec.ptoserver.com	 usut2-auto-tcp.ptoserver.com	 usut2-auto-udp.ptoserver.com

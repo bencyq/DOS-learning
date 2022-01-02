@@ -1,0 +1,134 @@
+(function($) {
+
+
+$(document).ready(function () {
+    $('#CTA_gdbrcontinue_analytic').click( function () {
+        GDPR.setUserConsent( GDPR.Constants.cookiesCategory_All, 1);
+        GDPR.hideConsentBanner();
+        //window.location.reload();
+        $('#gdpr_user_consent_banner').remove();
+    });
+
+    GDPR.showConsentBanner();
+});
+
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + "; " + expires+'; domain='+GDPR.Constants.cookiesDomain;
+}
+
+/*==================================================*/
+/*==================================================*/
+/*================= G D P R  =======================*/
+/*==================================================*/
+/*==================================================*/
+
+var GDPR = {};
+GDPR.Constants = GDPR.Constants || {};
+
+GDPR.Constants.gdprConsentCookie = "gdpr_user_consent";
+GDPR.Constants.cookiesCategory_All = "all";
+GDPR.Constants.cookiesCategory_Advertisement = "functional";
+GDPR.Constants.cookiesCategory_Performance  = "performance";
+GDPR.Constants.cookiesDomain = "purevpn.com";
+
+GDPR.Constants.cookieCategoryList = [
+    GDPR.Constants.cookiesCategory_Advertisement,
+    GDPR.Constants.cookiesCategory_Performance
+];
+
+GDPR.getCookie = function(c_name) {
+    if (document.cookie.length > 0) {
+        c_start = document.cookie.indexOf(c_name + "=");
+        if (c_start != -1) {
+            c_start = c_start + c_name.length + 1;
+            c_end = document.cookie.indexOf(";", c_start);
+            if (c_end == -1) {
+                c_end = document.cookie.length;
+            }
+            return unescape(document.cookie.substring(c_start, c_end));
+        }
+    }
+    return "";
+}
+
+GDPR.isUserConsentSubmitted = function(){
+    return GDPR.getCookie( GDPR.Constants.gdprConsentCookie ) === "" ? false : true;
+}
+
+GDPR.showConsentBanner = function(){
+
+    if( ! GDPR.isUserConsentSubmitted() )
+    {
+        $('#gdpr_user_consent_banner').removeClass('hidden');
+    }
+
+    if( GDPR.checkUserConsentForCategory( GDPR.Constants.cookiesCategory_Performance ) )
+    {
+        $('#performance_cookies.btn-toggle').removeClass('off');
+    }
+
+    if( GDPR.checkUserConsentForCategory( GDPR.Constants.cookiesCategory_Advertisement) )
+    {
+        $('#advertisement_cookies.btn-toggle').removeClass('off');
+    }
+
+}
+
+GDPR.hideConsentBanner = function(){
+
+    $('#gdpr_user_consent_banner').remove();
+}
+
+GDPR.setUserConsent = function ( category, value ) {
+
+    var userConsent = GDPR.getUserConsent();
+
+    if( category === GDPR.Constants.cookiesCategory_All )
+    {
+        //user gave consent for all category cookies
+        $.each( userConsent, function( k, v ) {
+            userConsent[k] = value;
+        });
+    }
+    else if(  GDPR.Constants.cookieCategoryList.indexOf( category ) > -1 )
+    {
+        //user gave consent for any specific category cookies
+        userConsent[category]= value;
+    }
+
+    setCookie( GDPR.Constants.gdprConsentCookie , JSON.stringify( userConsent ), 365 );
+
+}
+
+GDPR.getUserConsent = function() {
+    var userConsent = GDPR.getCookie( GDPR.Constants.gdprConsentCookie );
+    userConsent = userConsent !== "" ? JSON.parse( userConsent ): {};
+
+    $.each( GDPR.Constants.cookieCategoryList, function( index, cookieName ) {
+        if( userConsent.hasOwnProperty( cookieName ) === false )
+        {
+            userConsent[cookieName] = 0;
+        }
+    });
+
+    return userConsent;
+}
+
+
+GDPR.checkUserConsentForCategory = function ( category ){
+
+    var response = false;
+
+    if(  GDPR.Constants.cookieCategoryList.indexOf( category ) > -1 )
+    {
+        var userConsent = GDPR.getUserConsent();
+        response = !!userConsent[category];
+    }
+
+    return response;
+}
+
+})(jQuery);

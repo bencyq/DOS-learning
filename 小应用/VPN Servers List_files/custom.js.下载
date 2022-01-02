@@ -1,0 +1,1013 @@
+$ = jQuery;
+
+var timeout = null;
+var server_status_request_in_progress = false;
+
+$(document).ready(function () {
+
+    // Load VPN Servers
+    if(typeof isServerStatusPage != "undefined" && isServerStatusPage){
+        loadServersListing();
+    }
+
+    $('body').tooltip({
+        selector: '[data-toggle="tooltip"]'
+    });
+    $('.open-livechat').click(function () {
+        LC_API.open_chat_window();
+    });
+
+    $(document).on('click' , '.lc-btn' , function(){
+        jQuery(this).addClass('b-r-30');
+        jQuery(this).html('<div class="lc-rolling"><div></div></div>');
+    });
+    $(document).on('click' , '.open-livechat' , function(){
+        var live_chat = $("#lc-btn");
+        if(live_chat){
+            live_chat.click();
+        }
+        if (typeof(LC_API) != "undefined") {
+            LC_API.open_chat_window();
+        }
+    });
+    var $window = $(window);
+
+    $(".simpleRadio").click(function () {
+        $(".simpleRadio").removeClass('activeRadio');
+        $(this).addClass('activeRadio');
+    });
+
+    $(".search_filed").click(function () {
+        $.ajax({
+            url: WP_AJAX_URL,
+            type: 'post',
+            data: {action: 'search_quick_links'},
+            success: function (data) {
+                var searchBox = $(".searchInput #keyword");
+                if (searchBox.val().length === 0) {
+                    if (searchBox.hasClass("hide")) {
+                        $('#search_data').html(data);
+                    }
+                    $('#search_data').html(data);
+                } else {
+                    if (searchBox.hasClass("hide")) {
+                        $('#search_data').html(data);
+                    }
+                }
+            }
+        });
+
+    });
+
+    $(".search_filed").focus(function () {
+        $(".search_data").css('display', 'block');
+    }).blur(function () {
+        setTimeout(function () {
+            $(".search_data").css('display', 'none');
+        }, 200);
+
+    });
+
+    $(document).on('click', '.searchInput .input-group-addon button[type="submit"]', function (e) {
+        $(".searchInput .input-group input.form-control").focus();
+    });
+
+    if ($('.sticky-server-list').length) {
+        var distance = $('.sticky-server-list').next(".servers-table-container").offset().top;
+
+    }
+
+    $(window).scroll(function () {
+        if ($(".custom-table-wrap").length) {
+            if ($(this).width() > 1200) {
+                if ($(this).scrollTop() >= distance - 200) {
+                    $(".sticky-server-list").addClass("sticky-server-list-fixed");
+                } else {
+                    $(".sticky-server-list").removeClass("sticky-server-list-fixed");
+                }
+            }
+
+            var table = {
+                pos: 0,
+                h: 0
+            };
+
+            table.pos = $(".custom-table-wrap").position().top;
+            table.h = $(".custom-table-wrap").height();
+
+            var scrollTop = $(this).scrollTop();
+
+            if (scrollTop > (table.pos + table.h - 100)) {
+                $(".sticky-server-list").removeClass("sticky-server-list-fixed");
+            }
+        }
+    });
+
+    $(document).on('click', '.troubleShooting .answerResult a', function (e) {
+        var box = $('.troubleShootingoog');
+
+        $('.answerResult .btn').removeClass('active');
+        $(this).addClass('active');
+
+        if ($(this).text() == 'Yes') {
+            $(".answerResultFeedBack").html("<p>Kindly talk to Live Chat representative</p>");
+        } else {
+            $(".answerResultFeedBack").html("<p>Thank you for the feedback</p>");
+        }
+        if (typeof box != 'undefined') {
+            $('.troubleShootingoog').css("height", $('.troubleShootingoog').find('.section-wrapper').outerHeight() + 64);
+        }
+    });
+
+    $(document).on('keyup', '#keyword', function (e) {
+        clearTimeout(timeout);
+        var keyword = $('#keyword').val();
+        var keylength = keyword.length;
+        if (e.keyCode == 13) {
+            window.location = $('#search_data').find('#search_all').attr('href');
+            return false;
+        }
+        function slidingSearch() {
+            var resultContainer = $(".search_data");
+            var resultContainerWidth = $("header .searchInput").width();
+            if (keylength == 0) {
+
+                resultContainer.removeClass("search_dd");
+                $(".search_data").addClass("hide");
+                $(".search_data").empty();
+                $(".search_data").css("border", "none");
+                $(".searchInput .input-group input.form-control").removeClass('searchInputActive');
+                $(".searchInput").removeClass('searchActive');
+
+            }
+            else {
+                $(".searchInput .input-group input.form-control").addClass('searchInputActive');
+                $(".searchInput").addClass('searchActive');
+                $(".searchInput").removeClass('searchActiveFocus');
+                $(".search_data").removeClass("hide");
+                resultContainer.slideDown(1000);
+
+            }
+        }
+
+        if(typeof keylength != "undefined" && keylength > 0){
+            timeout = setTimeout(function() {
+                $.ajax({
+                    url: WP_AJAX_URL,
+                    type: 'post',
+                    data: {action: 'home_search', keyword: keyword},
+                    success: function (data) {
+                        $('#search_data').html(data);
+                        slidingSearch();
+                    }
+                });
+            }, 500);
+        }
+
+    });
+
+    $("a#happy").click(function () {
+
+        $('#sad span').removeClass('helpfulAnswerSadActive');
+        $('a#happy span').addClass('helpfulAnswerHappyActive');
+        var ele = $(this);
+        if (ele.hasClass('happyActive')) {
+            return false;
+        }
+        $('.vote_down_message').css('display', 'none');
+        var suggestion_post_id = ele.attr("data-suggested-post-id");
+        var vote = 1;
+        var suggestion_user_id = ele.attr("data-suggested-user-id");
+        var data_to_send = "suggestion_post_id=" + suggestion_post_id + "&vote=" + vote + "&action=get_post_information&suggestion_user_id=" + suggestion_user_id;
+        $.ajax({
+            url: BASE_URL + '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: data_to_send,
+            success: function (data, textStatus, jqXHR) {
+                $('.vote_up_message').css('disply', 'block');
+                $(".happy").show();
+                $("a#sad").removeClass('sadActive');
+                ele.addClass('happyActive');
+            },
+            fail: function (jqXHR, textStatus, errorThrown) {
+                alert("failed");
+            }
+        });
+
+    });
+
+    $("a#sad").click(function () {
+        $('#sad span').addClass('helpfulAnswerSadActive');
+        $('a#happy span').removeClass('helpfulAnswerHappyActive');
+        var ele = $(this);
+        $('.vote_down_message').slideToggle();
+        $('.happy').css('display', 'none');
+        $('#happy').removeClass('happyActive');
+        if (ele.hasClass('sadActive')) {
+            return false;
+        }
+        $(".sad").show();
+    });
+
+    $('.cancel_suggestion').click(function () {
+        $('.vote_down_message').css('display', 'none');
+    });
+
+    var tallest = 0;
+
+    $(".simpleFeedBackForm").submit(function (event) {
+        event.preventDefault();
+        var data_to_send = $(this).serialize();
+        var suggested_user_id = $("a#sad").attr("data-suggested-user-id"),
+            suggested_post_id = $("a#sad").attr("data-suggested-post-id"),
+            suggested_user_email = $('#email').val(),
+            vote = 0;
+        $(".form_submit").prop('value', 'Sending...').prop('disabled', true);
+
+        data_to_send += "&action=get_post_information&suggestion_user_id=" + suggested_user_id + "&suggestion_post_id=" +
+            suggested_post_id + "&vote=" + vote + "&suggestion_user_email=" + suggested_user_email;
+        $.ajax({
+            url: BASE_URL + '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: data_to_send,
+            success: function (data, textStatus, jqXHR) {
+                $(".happy").show();
+                $(".sad").hide();
+                $("a#happy").removeClass('happyActive');
+                $("a#sad").addClass('sadActive');
+                $(".form_submit").prop('value', 'Submit').prop('disabled', false);
+            },
+            fail: function (jqXHR, textStatus, errorThrown) {
+                console.log('Error');
+            }
+        });
+
+        return false;
+    });
+
+    $('#post_print').click(function () {
+        window.print();
+    });
+
+    if ($(".innerSectionAside").length && $(".innerSectionTabWrapper").length) {
+        var innerSectionAside = $(".innerSectionAside").outerWidth() - 30;
+        var innerSectionTabWrapper = $(".innerSectionTabWrapper").outerWidth();
+    }
+
+    function sticky_container(sideBar_width, sideBarRight_width) {
+        var target = $(".innerSectionTabWrapper");
+        var innerSectionAside2 = $(".innerSectionAside").outerWidth() - 30;
+        target.exists(function () {
+            var gettagetTop = target.offset().top;
+            var getTargetHeight = target.height();
+            var getWindowTop = $(window).scrollTop();
+            var windowWidth = $(window).width();
+            // this condition is written here because it optimize the code other wise it check on every scroll.....
+            var count = $(".inner-tabs li").length;
+            if (count >= 9) {
+                return false;
+            } else {
+                if (getWindowTop >= 79 && getWindowTop <= (getTargetHeight - 600)) {
+                    $(".innerSectionAside").addClass("sticky-sidebar");
+                    $(".innerSectionAside  > ul.inner-tabs").css("width", innerSectionAside2);
+                } else {
+                    $(".innerSectionAside").removeClass("sticky-sidebar");
+                    $(".innerSectionAside  > ul.inner-tabs").css("width", "");
+                }
+            }
+
+        });
+
+    }
+
+    function sticky_article_nav() {
+        var target = $("body");
+
+        target.exists(function () {
+            var gettagetTop = target.offset().top;
+            var getTargetHeight = target.height();
+            var getWindowTop = $(window).scrollTop();
+            var windowWidth = $(window).width();
+            if ($("body .navLinksWrapper").length) {
+                // this condition is written here because it optimize the code other wise it check on every scroll.....
+                if (getWindowTop >= 65) {
+                    if ($("header.inner-top-banner").hasClass("hide")) {
+                        return false;
+                    } else {
+                        $("header.inner-top-banner").slideUp();
+
+                        $(".inner-content-tab-section").css("padding-top", $("header").height());
+
+                        $("section.navLinksWrapper").addClass("sticky-navLinks");
+                    }
+                } else {
+                    $("header.inner-top-banner").slideDown();
+                    $(".inner-content-tab-section").css("padding-top", "0px");
+                    $("section.navLinksWrapper").removeClass("sticky-navLinks");
+                }
+            }
+        });
+
+    }
+
+    function sticky_article_progressBar() {
+        var target = $(".innerSectionTabContent");
+
+        target.exists(function () {
+            var gettagetTop = target.offset().top;
+            var getTargetHeight = target.height();
+            var articleDetailsBox = $(".articleDetailsBox").height();
+            var getWindowTop = $(window).scrollTop();
+            var windowWidth = $(window).width();
+
+            if (getWindowTop >= 210 && getWindowTop <= (getTargetHeight + 25)) {
+                var innersecWidth = $(".innerSectionTabContent").width();
+                $(".articleDetailsBox").addClass("sticky-articleProgressBar");
+                $(".articleDetailsBox").css('width', innersecWidth);
+                $(".innerSectionTabContent").css('padding-top', articleDetailsBox + 40);
+            } else {
+                $(".articleDetailsBox").removeClass("sticky-articleProgressBar");
+                $(".innerSectionTabContent").css('padding-top', articleDetailsBox - 37);
+            }
+
+        });
+
+        $(window).scroll(function () {
+            if (!$("body .innerSectionTabContent").length == 0) {
+                var s = $(window).scrollTop(),
+                    d = $(document).height(),
+                    c = $(window).height(),
+                    top = $(".innerSectionTabContent").offset().top,
+                    bottom = $(".innerSectionTabContent").offset().bottom;
+
+                var content = $(".innerSectionTabContent").height();
+                scrollPercent = ((s / content)) * 100;
+                var position = scrollPercent;
+
+                if (position <= 100) {
+                    $(".articleProgressBar .progress-bar").css('width', position + '%');
+                }
+
+
+            }
+        });
+    }
+
+    var sideBarWidth = $(".innerSectionAside").width() + 30;
+    var sideBarRightWidth = $(".innerSectionTabWrapper").width();
+    $(window).scroll(function () {
+        if (!($('.innerSectionTabWrapper').hasClass('full-width-class'))) {
+            if ($(window).width() >= 992) {
+                sticky_container(sideBarWidth, sideBarRightWidth);
+                sticky_article_nav();
+                sticky_article_progressBar();
+            }
+            $(window).resize(function () {
+                if ($(window).width() >= 992) {
+                    sticky_container(sideBarWidth, sideBarRightWidth);
+                    sticky_article_nav();
+                    sticky_article_progressBar();
+                }
+            });
+        }
+    });
+
+    $(window).resize(function () {
+        if ($(window).width() <= 992) {
+            $(".innerSectionAside").removeClass("sticky-sidebar");
+            $(".innerSectionAside  > ul.inner-tabs").css("width", "");
+        } else{
+            sticky_container(sideBarWidth, sideBarRightWidth);
+            sticky_article_nav();
+            sticky_article_progressBar();
+        }
+    });
+
+    function stickySlide() {
+
+        if (!($('.innerSectionTabWrapper').hasClass('full-width-class'))) {
+            if ($(window).width() >= 993) {
+                sticky_container(sideBarWidth, sideBarRightWidth);
+                sticky_article_nav();
+                sticky_article_progressBar();
+            }
+            $(window).resize(function () {
+                if ($(window).width() >= 992) {
+                    sticky_container(sideBarWidth, sideBarRightWidth);
+                    sticky_article_nav();
+                    sticky_article_progressBar();
+                }
+            });
+        }
+    }
+
+    $(document).on('.navLinksWrapper .navLinks li.dropdown a', '#keyword', function (e) {
+        $('.dropdown-toggle').dropdown();
+    });
+
+    $(".articleDownloadAndPrintLink .shareFri").focus(function () {
+        $(".pb-side-social_bar").addClass('pb-activeWidth');
+    }).blur(function () {
+        setTimeout(function () {
+            $(".pb-side-social_bar").removeClass('pb-activeWidth');
+        }, 100);
+
+    });
+
+    $('#tb_help_no').click(function () {
+        $('.troubleShootingoog').css('display', 'none');
+        $(this).parent().append("<p class='tb_help_no_para'>Thanks for the feedback</p>").fadeIn();
+        setTimeout(function () {
+            $("p.tb_help_no_para").fadeOut();
+        }, 3000)
+    });
+
+    if ($("#comment_section").length) {
+        var author = $("#comment_section .comment-author .fn");
+        author.each(function (i, element) {
+            //console.log($(element).text());
+            if ($(element).text() == 'PureVPN Team') {
+                $(element).parent().parent().addClass("purevpnAuthor");
+                $(element).parent().parent().siblings("ul").children("li.depth-2").addClass("purevpnAuthorChild");
+            }
+        });
+    }
+
+    $('#tb_help_yes').click(function () {
+        $('.troubleShootingoog').css('display', 'block');
+        $(this).parent().children("p").remove();
+    });
+
+
+    $(window).resize(function () {
+        var box = $('.troubleShootingoog');
+        if (typeof box != 'undefined') {
+            box.css("height", box.find('.section-wrapper').outerHeight() + 40);
+        }
+    });
+
+    $(".troubleShootingoog").delegate('.troubleshoot_option', 'click', function () {
+        var loader = $(".lds-loader-wrapper");
+
+        if (typeof loader != 'undefined') {
+            loader.fadeIn();
+        }
+        var that = $(this);
+        var Parentsec = $(".troubleShootingoog");
+
+        that.closest(".troubleShootingRadio").parent().nextAll('div').remove();
+
+        var answer_id = that.data('answer_id');
+        var answer_type = that.data('answer_type');
+        var post_id = that.data('post_id');
+        var group_id = that.data('group_id');
+        var AjaxUrl = WP_AJAX_URL + '/wp-admin/admin-ajax.php';
+
+
+        var sectionBlock = $('.troubleShootingoog');
+        var sectionBlockHeight = 0;
+        if (typeof sectionBlock != 'undefined') {
+            sectionBlockHeight = sectionBlock.outerHeight();
+            sectionBlock.css("height", (sectionBlockHeight != 0) ? (sectionBlock.find('.section-wrapper').outerHeight() + 40) : 'auto');
+        }
+
+        $.ajax({
+            type: "POST",
+            url: AjaxUrl,
+            data: {
+                action: 'get_troubleshoot_section',
+                answer_id: answer_id,
+                answer_type: answer_type,
+                post_id: post_id,
+                group_id: group_id
+
+            },
+            success: function (res) {
+                if (typeof sectionBlock != 'undefined') {
+                    sectionBlock.find('.section-wrapper').append(res);
+                    sectionBlockHeight = sectionBlock.find('.section-wrapper').outerHeight() + 40;
+                    sectionBlock.animate({
+                        height: sectionBlockHeight
+                    });
+                    if (document.readyState === "complete" || document.readyState === "loaded") {
+                        $('html, body').animate({
+                            scrollTop: (that.closest(".troubleShootingRadio").offset().top + that.closest(".troubleShootingRadio").outerHeight(true) ) - 100
+                        }, 700);
+                    }
+                }
+                if (typeof loader != 'undefined') {
+                    loader.fadeOut();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('.troubleShootingoog').html('Error !');
+                if (typeof loader != 'undefined') {
+                    loader.fadeOut();
+                }
+            }
+        })
+
+    });
+
+    //** vpn server listing start **//
+
+    $("#server_submit").click(function () {
+        var that = $(this);
+        var searching_text = $("#searching_text").val();
+        var city = $('#server_city').val();
+        var country = $('#server_country').val();
+        var protocol = $('#server_protocol').val();
+
+        if (searching_text == "") {
+            $('.searchclear').removeClass('show');
+        } else {
+            $('.searchclear').addClass('show');
+        }
+
+        that.attr("disabled", "disabled");
+        var AjaxUrl = BASE_URL + '/wp-admin/admin-ajax.php';
+
+
+        $("#loader").addClass("ajax");
+        $.ajax({
+            type: "POST",
+            url: AjaxUrl,
+            data: {
+                action: 'servers_searching',
+                search: searching_text,
+                city: city,
+                country: country,
+                protocol: protocol
+
+            },
+            success: function (res) {
+                $('#servers_data').html(res);
+                $("#loader").removeClass("ajax");
+                that.removeAttr("disabled", "disabled");
+            }
+        });
+    });
+
+    $(".text_clear").click(function () {
+
+        $('#searching_text').val('');
+        $(this).removeClass('show');
+
+        var AjaxUrl = BASE_URL + '/wp-admin/admin-ajax.php';
+        var searching_text = '';
+
+        $("#loader").addClass("ajax");
+
+        $.ajax({
+            type: "POST",
+            url: AjaxUrl,
+            data: {
+                action: 'servers_searching',
+                search: searching_text
+
+            },
+            success: function (res) {
+
+                $('#servers_data').html(res);
+                $("#loader").removeClass("ajax");
+                $('#server_submit').removeAttr("disabled", "disabled");
+            }
+        });
+    });
+
+    $(".sort_servers").click(function () {
+        var that = $(this);
+        var search_value = $('#searching_text').val();
+        var sort_order = that.data("sort");
+        var sort_type = that.data("sort_type");
+        $("#loader").addClass("ajax");
+
+        if (sort_order == 'desc') {
+            that.data('sort', 'asc');
+        } else {
+            that.data('sort', 'desc');
+        }
+
+        $.ajax({
+            url: BASE_URL + '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: {
+                action: 'server_sorting',
+                order: sort_order,
+                sort_type: sort_type,
+                search_text: search_value
+
+            },
+            success: function (res) {
+                $('#servers_data').html(res);
+                $("#loader").removeClass("ajax");
+            },
+            error: function (d) {
+                alert('error');
+            }
+
+        });
+
+    });
+
+    jQuery("#searching_text").keypress(function (e) {
+
+        var keyCode = e.keyCode;
+        var searching_text = $("#searching_text").val();
+
+        if (searching_text != "") {
+            $('.searchclear').addClass('show');
+        } else {
+            $('.searchclear').removeClass('show');
+        }
+    });
+
+    $("#searching_text").on("input", function () {
+        var searching_text = $("#searching_text").val();
+
+        if (searching_text != "") {
+            $('.searchclear').addClass('show');
+        } else {
+            $('.searchclear').removeClass('show');
+        }
+
+    });
+
+    //** vpn server listing end **//
+
+    $('#menu-button-dropdown').click(function () {
+        $("body #sideNav #sideNavMenu").fadeToggle();
+        $(this).toggleClass("activeNav");
+    });
+
+    $(document).click(function (e) {
+        // Check if click was triggered on or within .menu-button
+        if ($(e.target).closest(".menu-button").length > 0) {
+            return false;
+        }
+        $("body #sideNav #sideNavMenu").fadeOut();
+        $('#menu-button-dropdown').removeClass("activeNav");
+    });
+
+    $(document).on('click', '#search-button', function () {
+        $("header .searchInput").toggleClass('active');
+    });
+
+    $('.knwBase-inner-tabs li > a').on('click', function (event) {
+        //event.stopPropagation();
+        $(event.target).addClass('helloIqbal');
+        console.log(event.target);
+        if ($(this).parent().hasClass('link-article-parent')) {
+            alert("parent");
+        }
+        $('.knwBase-inner-tabs li > a').removeClass("activeCategoryLink");
+        $(this).addClass("activeCategoryLink");
+    });
+
+    $('li > a.dropdown-toggle.knwbasDropdown').on('click', function (event) {
+        if ($(this).parent("li.dropdown").hasClass("open")) {
+            $(this).parent("li.dropdown").removeClass("open");
+        } else {
+            $(this).parent("li.dropdown").addClass("open");
+        }
+    });
+    if ($("#wpadminbar").length) {
+        if ($("#commentform").length) {
+            $("#comment_section #respond #commentform > div:nth-child(1)," +
+                " #comment_section #respond #commentform > div:nth-child(2)").css("width", "100%");
+        }
+    }
+    $('.kb_selected_category').click(function () {
+
+        var that = $(this);
+        //alert(that.text());
+        var posts_data = $('.posts_data');
+        var dropdownCount = that.attr("data-listcount");
+        var cat_title = $('.knowledge-base-topTitle');
+        var category_id = that.data('category_id');
+        var category_title = that.data('category_title');
+        var str = '&category_id=' + category_id + '&action=get_kb_category_posts';
+
+        $.ajax({
+            type: "POST",
+            dataType: "html",
+            url: BASE_URL + '/wp-admin/admin-ajax.php',
+            data: str,
+            success: function (data) {
+                if (data.length) {
+                    cat_title.html(category_title);
+                    posts_data.html(data);
+                } else {
+                    posts_data.html('No data found');
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                post_data.html('Error !');
+            }
+
+        });
+    });
+
+    $('#wt-hlobar-remove').on('click', function () {
+        $('.hellobar-wrap').hide();
+    });
+    $('#hellobar-close').on('click', function () {
+        $('.wt-hlobar-strip').fadeOut();
+    });
+
+    $("#server_protocol").select2();
+    $("#server_city").select2();
+    $("#server_country").select2();
+
+    if (document.cookie.indexOf("_hellobar_visible=") >= 0) {
+        $(".wt-hlobar-strip.hellobar-camp").hide();
+    } else {
+        $(".wt-hlobar-strip.hellobar-camp").show();
+        setHellobarCookie();
+    }
+
+    window.onscroll = function() {navStickyScroll()};
+    var navbar = document.getElementById("header-wrp");
+    var sticky = (typeof navbar != "undefined" && navbar) ? navbar.offsetTop : 0;
+
+    function navStickyScroll() {
+        if(typeof navbar != "undefined" && navbar){
+            if (window.pageYOffset > sticky) {
+                navbar.classList.add("sticky")
+            } else {
+                navbar.classList.remove("sticky");
+            }
+        }
+    }
+    $(document).on('click', 'tr.parent td:first-child', function(){
+        $(this).closest('tbody').toggleClass('open')
+            .siblings('tbody').removeClass('open');
+    });
+
+});
+
+function popitup(url, height, width) {
+    var newwindow = window.open(url, '', 'height=' + height + ', width=' + width + '');
+    if (window.focus) {
+        newwindow.focus()
+    }
+    return false;
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function PhoneVerification(phone_input_id, error_msg_id, valid_msg_id) {
+
+    var telInput = $(phone_input_id),
+        errorMsg = $(error_msg_id),
+        validMsg = $(valid_msg_id),
+        isValidNumber = 0;
+
+    telInput.intlTelInput({
+        autoPlaceholder: "on",
+        nationalMode: true,
+        separateDialCode: true,
+        utilsScript: "wp-content/themes/PurevpnSupport_v2/template/js/utils.js"
+    });
+
+    // initialise plugin
+    telInput.intlTelInput({
+        utilsScript: "../../build/js/utils.js"
+    });
+
+    var reset = function () {
+        telInput.removeClass("error");
+        errorMsg.addClass("hide");
+        validMsg.addClass("hide");
+    };
+
+    telInput.on("keyup change", function () {
+
+        reset();
+        var intlNumber = telInput.intlTelInput("getNumber");
+
+        if ($.trim(telInput.val())) {
+            if (telInput.intlTelInput("isValidNumber")) {
+                if (phone_input_id == '#credentials_sms') {
+                    $('.credentials-body .intl-tel-input').removeClass('error');
+                    $('.credentials-body .information-text').html('');
+                }
+                else if (phone_input_id == '#ios_link_sms') {
+                    $('.send-ios-link-body .intl-tel-input').removeClass('error');
+                    $('.send-ios-link-body .information-text').html('');
+                }
+
+                isValidNumber = 1;
+            } else {
+                telInput.addClass("error");
+                isValidNumber = 0;
+            }
+        }
+
+    });
+
+    return [telInput.intlTelInput("getNumber"), isValidNumber];
+
+}
+
+function validateEmail(sEmail) {
+    var filter = /^[\w\-\.\+]+\@[a-zA-Z0-9\.\-]+\.[a-zA-z0-9]{2,4}$/;
+    return filter.test(sEmail);
+}
+
+function setHellobarCookie() {
+    var d = new Date();
+    d.setTime(d.getTime() + 24 * 60 * 60 * 1000);
+    document.cookie = "_hellobar_visible=yes; expires=" + d.toGMTString() +'; domain=purevpn.com';
+}
+
+sendEvent = function (data) {
+    data = {
+        'eventData': data,
+        'action': 'send_mxp_events'
+    };
+    $.ajax({
+        type: 'POST',
+        data: data,
+        url: WP_AJAX_URL,
+        success: function (response) {
+
+        }
+    });
+}
+
+// check if function element exits
+
+$.fn.exists = function (callback) {
+    var args = [].slice.call(arguments, 1);
+
+    if (this.length) {
+        callback.call(this, args);
+    }
+
+    return this;
+};
+
+// check if function element exits
+
+jQuery(document).on('change', '#server_country', function () {
+    var countryName = jQuery(this).val();
+    var matchedCountryList = [{id: 0, text: 'Select City'}];
+    $('#server_city').html(' ');
+    jQuery.each(servers, function (index, value) {
+        if (countryName == value.country_name) {
+            matchedCountryList.push({id: value.city_name, text: value.city_name});
+        }
+    });
+    $('#server_city').select2({
+        data: matchedCountryList
+    });
+    var data = $('#server_city').select2('data');
+    $('#server_city').select2("data", data, true);
+});
+
+// accordion shortcode js
+
+$(document).ready(function () {
+    var targetDiv = $('.accordion-heading');
+    if (targetDiv.length) {
+        targetDiv.on('click', function () {
+            $(this).parent().find('.inner-accordion').addClass('open');
+            if ($(this).parent().hasClass('open')) {
+                $(this).parent().removeClass('open');
+            } else {
+                targetDiv.parent().removeClass('open');
+                $(this).parent().addClass('open');
+            }
+        });
+    }
+    var innerAccordion = $('.inner-heading');
+    if (innerAccordion.length) {
+        innerAccordion.on('click', function () {
+            if ($(this).parent().hasClass('open')) {
+                $(this).parent().removeClass('open');
+            } else {
+                $(this).parent().addClass('open');
+
+            }
+        });
+    }
+});
+
+function loadServersListing() {
+    var country_name = $('#country_name').val();
+    var select_protocol = $('#select_protocol').val();
+    var loader = $('#servers-loader');
+
+    if (server_status_request_in_progress) {
+        return;
+    }
+
+    server_status_request_in_progress = true;
+
+    showHideServerLoader(true);
+
+    $.ajax({
+        url: BASE_URL + '/wp-admin/admin-ajax.php',
+        type: 'POST',
+        timeout: 60000,
+        data: {
+            action: 'load_servers_list',
+            country_name: country_name,
+            select_protocol: select_protocol,
+            _wpnonce: $('#_wpnonce').val(),
+            _wp_http_referer: $('input[name=_wp_http_referer]').val()
+        },
+        success: function (res, status) {
+
+            server_status_request_in_progress = false;
+
+            showHideServerLoader(false);
+
+            if (res.success === false) {
+                showFailoverTable(res, status);
+                return;
+            }
+
+            $('.servers-table-container').children().not('#servers-loader').remove();
+            $('.servers-table-container').prepend(res);
+
+            $('#country_name').autocomplete({
+                lookup: _countries,
+                onSelect: function (suggestion) {
+                    if (suggestion.value === country_name) {
+                        return;
+                    }
+
+                    loadServersListing();
+                }
+            });
+        },
+        error: function (res, status) {
+            showHideServerLoader(false);
+            server_status_request_in_progress = false;
+            showFailoverTable(res, status);
+        }
+    });
+}
+
+function showHideServerLoader(status) {
+
+    var loader = $('#servers-loader');
+
+    if(typeof status != "undefined" && status) {
+        loader.removeClass('hidden');
+    }else{
+        loader.addClass('hidden');
+    }
+}
+
+function showFailoverTable(res, status) {
+    var country_name = $('#country_name').val();
+    var select_protocol = $('#select_protocol').val();
+
+    var isSearching = country_name || select_protocol;
+    var failureText = (status === 'success' && isSearching) ? sEmptySearchText : sErrorText;
+
+    $('.servers-table-container').children().not('#servers-loader').remove()
+
+    var failOverTableClone = $('.failover-table')
+                .clone()
+                .removeClass('failover-table hidden')
+                .find('h2.empty-rec-heading')
+                .text(failureText)
+                .end()
+
+     if (!isSearching || status !== 'success') {
+         var failOverTableClone = $('.failover-table')
+                .clone()
+                .removeClass('failover-table hidden')
+                .find('h2.empty-rec-heading')
+                .text(failureText)
+                .end()
+                .find('.text-center.show')
+                .remove()
+                .end()
+     }
+
+    $('.servers-table-container')
+        .prepend( // prepend failover table
+            failOverTableClone
+        );
+}
+
+$(document).on('keypress', '#country_name', function(e) {
+    var val = $(this).val()
+    if(e.which == 13 && (val.length > 3 || val.length === 0)) {
+        loadServersListing();
+    }
+});
