@@ -11,3 +11,9 @@ Ashburn	 N/A	 N/A	 N/A	 usva2-auto-ikev.ptoserver.com	 usva2-auto-ipsec.ptoserve
 San Francisco	 N/A	 N/A	 N/A	 ussf2-auto-ikev.ptoserver.com	 ussf2-auto-ipsec.ptoserver.com	 ussf2-auto-tcp.ptoserver.com	 ussf2-auto-udp.ptoserver.com
 Seattle	 N/A	 N/A	 N/A	 ussa2-auto-ikev.ptoserver.com	 ussa2-auto-ipsec.ptoserver.com	 ussa2-auto-tcp.ptoserver.com	 ussa2-auto-udp.ptoserver.com
 Salt Lake City	 N/A	 N/A	 N/A	 usut2-auto-ikev.ptoserver.com	 usut2-auto-ipsec.ptoserver.com	 usut2-auto-tcp.ptoserver.com	 usut2-auto-udp.ptoserver.com
+sg-ikev.ptoserver.com	 sg-ipsec.ptoserver.com	 sg2-auto-tcp.ptoserver.com	 sg2-auto-udp.ptoserver.com
+jp-ikev.ptoserver.com	 jp-ipsec.ptoserver.com	 jp2-auto-tcp.ptoserver.com	 jp2-auto-udp.ptoserver.com
+my-ikev.ptoserver.com	 my-ipsec.ptoserver.com	 my2-auto-tcp.ptoserver.com	 my2-auto-udp.ptoserver.com
+hk2-auto-ikev.ptoserver.com	 hk2-auto-ipsec.ptoserver.com	 hk2-auto-tcp.ptoserver.com	 hk2-auto-udp.ptoserver.com
+at-ikev.ptoserver.com	 at-ipsec.ptoserver.com	 at2-auto-tcp.ptoserver.com	 at2-auto-udp.ptoserver.com
+tw-ikev.ptoserver.com	 tw-ipsec.ptoserver.com	 tw2-auto-tcp.ptoserver.com	 tw2-auto-udp.ptoserver.com

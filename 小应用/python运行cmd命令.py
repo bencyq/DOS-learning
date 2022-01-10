@@ -11,14 +11,15 @@ for text in texts:
         text.remove('')
     address.append(text)
 print(address)
-servers = []
+servers = set()
+os.system('chcp 65001')
 for city in address:
     for server in city[1:]:
         p = os.popen(f'ping {server}')
         text = p.read()
         print(text)
-        if text.count('请求超时') <= 1 and text.count('找不到') == 0:
-            servers.append(server)
+        if text.count('timed out') <= 1 and text.count('find') == 0:
+            servers.add(server)
         print(servers, len(servers))
 print(servers)
 
@@ -26,3 +27,5 @@ with open('ping.txt','w') as fp:
     for server in servers:
         fp.write(server)
         fp.write('\r\n')
+
+os.system("pause")
